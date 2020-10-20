@@ -7,8 +7,6 @@ import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import jdk.javadoc.internal.doclets.toolkit.util.DocFinder.Output;
-
 public class EchoServer {
 	public static final int PORT_NUMBER = 6013;
 
@@ -23,19 +21,18 @@ public class EchoServer {
 			Socket socket = serverSocket.accept();
 			InputStream inputStream = socket.getInputStream();
 			OutputStream outputStream = socket.getOutputStream();
-			connectionThread serverConnection = new connectionThread(socket, inputStream, outputStream);
-			serverConnection.run();
-		}
+			connectionThread clientConnection = new connectionThread(socket,inputStream,outputStream);
+	
+			new Thread(clientConnection).start();
 	}
-
-	public class connectionThread extends Thread {
-		public Thread connectThread;
-		public Socket socketName;
-		public InputStream inputStreamName;
-		public OutputStream outputStreamName;
+   }
+	public static class connectionThread implements Runnable {
+		public Socket clientSocket = null;
+		public InputStream inputStreamName = null;
+		public OutputStream outputStreamName = null;
 
 		connectionThread(Socket socket, InputStream inputStream, OutputStream outputStream) {
-			socketName = socket;
+			clientSocket = socket;
 			inputStreamName = inputStream;
 			outputStreamName = outputStream;
 		}
@@ -43,17 +40,16 @@ public class EchoServer {
 		public void run() {
 			try {
 				int line;
-				while ((line = inputStream.read()) != -1) {
-					outputStream.write(line);
-					outputStream.flush();
+				while ((line = inputStreamName.read()) != -1) {
+					outputStreamName.write(line);
+					outputStreamName.flush();
 				}
 
-				socket.shutdownOutput();
+				clientSocket.shutdownOutput();
 				System.out.flush();
-				socket.close();
 
 			} catch (ConnectException ce) {
-				System.out.prinln("We were unable to connect to the Client.");
+				System.out.println("We were unable to connect to the Client.");
 			} catch (IOException ioe) {
 				System.out.println("We caught an unexpected exception.");
 				System.out.println(ioe);
@@ -61,4 +57,6 @@ public class EchoServer {
 		}
 
 	}
+
 }
+

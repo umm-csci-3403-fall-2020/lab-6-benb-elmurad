@@ -27,22 +27,24 @@ public class EchoClient {
 		OutputStream socketOutputStream = socket.getOutputStream();
 
 		// create our thread that sends keyboard input to the server
-		GetOutgoingThread clientSend = new GetOutgoingThread("clientSend", socket, socketOutputStream);
-		clientSend.run();
+		GetOutgoingThread clientSend = new GetOutgoingThread(socket, socketOutputStream);
+		new Thread(clientSend).start();
 		// create our thread that receives that input echoed back from the server
-		GetIncomingThread clientReceive = new GetIncomingThread("clientReceive", socket, socketInputStream);
-		clientReceive.run();
+		GetIncomingThread clientReceive = new GetIncomingThread(socket, socketInputStream);
+		new Thread(clientReceive).start();
+		
+		// closing all the stuff we opened
+		//socket.close();
+		//socketInputStream.close();
+		//socketOutputStream.close();
 	}
 
 	public class GetOutgoingThread extends Thread {
-		public Thread inputThread;
-		public String threadName;
 		public Socket socketName;
 		public OutputStream outputStreamName;
 		public InputStream inputStreamName;
 
-		GetOutgoingThread(String name, Socket socket, OutputStream outputStream) {
-			threadName = name;
+		GetOutgoingThread(Socket socket, OutputStream outputStream) {
 			socketName = socket;
 			outputStreamName = outputStream;
 			// System.out.println("Creating " + threadName);
@@ -68,13 +70,10 @@ public class EchoClient {
 		}
 	}
 	public class GetIncomingThread extends Thread {
-		public Thread outputThread;
-		public String threadName;
 		public Socket socketName;
 		public InputStream inputStreamName;
 
-		GetIncomingThread(String name, Socket socket, InputStream inputStream){
-			threadName = name;
+		GetIncomingThread(Socket socket, InputStream inputStream){
 			socketName = socket;
 			inputStreamName = inputStream;
 		}
@@ -83,17 +82,19 @@ public class EchoClient {
 			try {
 				int echoThisByte;
 				while ((echoThisByte = inputStreamName.read()) != -1) {
-					// write the byte we just read to the outputStream
+					// write the byte we just read to the System.out
 					System.out.write(echoThisByte);
-					// send it back to the client
+					// make sure we actually push what was written to System.out
 					System.out.flush();
 				}
+				socketName.shutdownInput();
 			} catch (ConnectException ce) {
 				System.out.println("We were unable to connect to localhost.");
 			} catch (IOException ioe) {
 				System.out.println("We caught an unexpected exception");
 				System.out.println(ioe);
 			}
+				
 		}
 	}
 

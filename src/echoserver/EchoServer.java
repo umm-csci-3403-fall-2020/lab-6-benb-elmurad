@@ -3,13 +3,13 @@ package echoserver;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class EchoServer {
-	
-	// REPLACE WITH PORT PROVIDED BY THE INSTRUCTOR
-	public static final int PORT_NUMBER = 0; 
+	public static final int PORT_NUMBER = 6013;
+
 	public static void main(String[] args) throws IOException, InterruptedException {
 		EchoServer server = new EchoServer();
 		server.start();
@@ -19,13 +19,44 @@ public class EchoServer {
 		ServerSocket serverSocket = new ServerSocket(PORT_NUMBER);
 		while (true) {
 			Socket socket = serverSocket.accept();
-
-			// Put your code here.
-			// This should do very little, essentially:
-			//   * Construct an instance of your runnable class
-			//   * Construct a Thread with your runnable
-			//      * Or use a thread pool
-			//   * Start that thread
-		}
+			InputStream inputStream = socket.getInputStream();
+			OutputStream outputStream = socket.getOutputStream();
+			connectionThread clientConnection = new connectionThread(socket,inputStream,outputStream);
+	
+			new Thread(clientConnection).start();
 	}
+   }
+	public static class connectionThread implements Runnable {
+		public Socket clientSocket = null;
+		public InputStream inputStreamName = null;
+		public OutputStream outputStreamName = null;
+
+		connectionThread(Socket socket, InputStream inputStream, OutputStream outputStream) {
+			clientSocket = socket;
+			inputStreamName = inputStream;
+			outputStreamName = outputStream;
+		}
+
+		public void run() {
+			try {
+				int line;
+				while ((line = inputStreamName.read()) != -1) {
+					outputStreamName.write(line);
+					outputStreamName.flush();
+				}
+
+				clientSocket.shutdownOutput();
+				System.out.flush();
+
+			} catch (ConnectException ce) {
+				System.out.println("We were unable to connect to the Client.");
+			} catch (IOException ioe) {
+				System.out.println("We caught an unexpected exception.");
+				System.out.println(ioe);
+			}
+		}
+
+	}
+
 }
+

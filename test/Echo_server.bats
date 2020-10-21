@@ -20,6 +20,7 @@ teardown() {
   cd src
   java echoserver.EchoServer &
   status=$?
+  sleep 1
   kill %1
   cd ..
   [ "$status" -eq 0 ]
@@ -30,6 +31,7 @@ teardown() {
   rm -f echoserver/*.class
   javac echoserver/EchoServer.java
   java echoserver.EchoServer &
+  sleep 1
   cd ..
 
   cd test/sampleBin
@@ -45,6 +47,7 @@ teardown() {
   rm -f echoserver/*.class
   javac echoserver/EchoServer.java
   java echoserver.EchoServer &
+  sleep 1
   cd ..
 
   cd test/sampleBin
@@ -60,6 +63,7 @@ teardown() {
   rm -f echoserver/*.class
   javac echoserver/EchoServer.java
   java echoserver.EchoServer &
+  sleep 1
   cd ..
 
   cd test/sampleBin
